@@ -8,12 +8,29 @@
   "version": "0.0.1",
   "repo": "https://github.com/soksak-ai/soksak-plugin-git-init.git",
   "description": {
-    "ko": "새 프로젝트의 루트에 .git 이 없으면 자동으로 git init",
-    "en": "Runs git init automatically when a new project root has no .git"
+    "ko": "새 프로젝트의 루트에 .git 이 없으면 자동으로 git init. 정책 상태 조회·수동 실행 커맨드 제공.",
+    "en": "Runs git init automatically when a new project root has no .git. Provides commands to query the policy state and run it manually."
   },
   "entry": "main.js",
   "permissions": [
     "commands"
   ],
-  "contributes": {}
+  "contributes": {
+    "commands": [
+      {
+        "name": "status",
+        "title": {
+          "ko": "정책 상태",
+          "en": "Policy status"
+        }
+      },
+      {
+        "name": "run",
+        "title": {
+          "ko": "지금 초기화 실행",
+          "en": "Run init now"
+        }
+      }
+    ]
+  }
 }
