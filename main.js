@@ -12,6 +12,11 @@ export default {
   activate(ctx) {
     const app = ctx.app;
 
+    // message·검증 에러는 사람 표면 — locale 해소({en,ko}, docs/I18N.md).
+    // ko 외 locale 은 en 폴백. 호스트가 locale 을 안 주는 구버전은 ko 로 폴백.
+    const msg = (en, ko) =>
+      ((typeof app.locale === "function" ? app.locale() : "ko") === "ko" ? ko : en);
+
     // 정책 실행 장부(세션-로컬, 비영속) — status 가 반환하는 관찰면.
     // 정책 자체가 무상태 위임이라 영속할 상태가 없다. last 는 마지막 위임 결과 1건.
     const stats = { autoRuns: 0, manualRuns: 0, last: null };
@@ -52,7 +57,10 @@ export default {
         "{ active, event, delegate, autoRuns, manualRuns, last: {source,path,ok,code,initialized,at}|null }",
       examples: ["sok plugin.soksak-plugin-git-init.status"],
       message: (d) =>
-        `자동 git init 정책 활성 — 이번 세션 자동 ${d.autoRuns}회·수동 ${d.manualRuns}회 실행.`,
+        msg(
+          `Auto git init policy active — this session ran ${d.autoRuns} auto, ${d.manualRuns} manual.`,
+          `자동 git init 정책 활성 — 이번 세션 자동 ${d.autoRuns}회·수동 ${d.manualRuns}회 실행.`,
+        ),
       handler: () => ({
         active: true, // 이 커맨드가 응답한다 = activate 가 구독을 배선했다
         event: EVENT,
@@ -71,7 +79,7 @@ export default {
         path: {
           type: "string",
           required: true,
-          description: "대상 디렉토리(절대 경로)",
+          description: "Target directory (absolute path)",
         },
       },
       returns: "{ initialized: whether init was performed, path }",
@@ -80,8 +88,14 @@ export default {
       ],
       message: (d) =>
         d.initialized
-          ? `git 저장소를 초기화했습니다 — ${d.path}`
-          : `이미 git 저장소입니다 — ${d.path}`,
+          ? msg(
+              `Initialized a git repository — ${d.path}`,
+              `git 저장소를 초기화했습니다 — ${d.path}`,
+            )
+          : msg(
+              `Already a git repository — ${d.path}`,
+              `이미 git 저장소입니다 — ${d.path}`,
+            ),
       handler: async (p, inv) => {
         const path =
           typeof p.path === "string" && p.path.trim() ? p.path : null;
@@ -89,7 +103,10 @@ export default {
           return {
             ok: false,
             code: "INVALID_PARAMS",
-            message: "path 필요 — 대상 디렉토리 절대 경로를 지정하세요",
+            message: msg(
+              "path required — specify the target directory as an absolute path",
+              "path 필요 — 대상 디렉토리 절대 경로를 지정하세요",
+            ),
           };
         }
         // 중첩 실행은 inv.execute(유래·상관 상속) — 구버전 호스트만 app.commands.execute 폴백.

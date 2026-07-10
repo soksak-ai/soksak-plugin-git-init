@@ -25,6 +25,7 @@ function activateWithMock(opts = {}) {
   const events = new Map();
   const executed = [];
   const app = {
+    locale: () => opts.locale ?? "en",
     commands: {
       register: (name, spec) => {
         registered.set(name, spec);
@@ -196,4 +197,31 @@ test("run: 위임 실패 → {ok:false,code,message} 그대로 수렴 + 장부�
   const st = await registered.get("status").handler({});
   assert.equal(st.last?.ok, false);
   assert.equal(st.last?.code, "TARGET_NOT_FOUND");
+});
+
+// i18n 두 축(docs/I18N.md): 사람 표면(message·검증 에러)은 로케일 해소({en,ko}),
+// LLM 표면(param description)은 영어 base — 로케일 무관 한글 금지.
+// locale=en 에서 한글 리터럴이 새어 나오면 해소 없이 하드코딩됐다는 뜻 — 위반.
+const HANGUL = /[가-힣]/;
+
+test("i18n: locale=en — message·검증 에러에 한글 없음, param description 은 영어 base", async () => {
+  const { registered } = activateWithMock({ locale: "en" });
+
+  const status = registered.get("status");
+  const statusMsg = status.message({ autoRuns: 2, manualRuns: 1 });
+  assert.ok(!HANGUL.test(statusMsg), `status.message 에 한글 리터럴: ${statusMsg}`);
+
+  const run = registered.get("run");
+  const initMsg = run.message({ initialized: true, path: "/tmp/x" });
+  assert.ok(!HANGUL.test(initMsg), `run.message(initialized) 에 한글 리터럴: ${initMsg}`);
+  const existMsg = run.message({ initialized: false, path: "/tmp/x" });
+  assert.ok(!HANGUL.test(existMsg), `run.message(already) 에 한글 리터럴: ${existMsg}`);
+
+  const bad = await run.handler({});
+  assert.equal(bad.code, "INVALID_PARAMS");
+  assert.ok(!HANGUL.test(bad.message), `run INVALID_PARAMS message 에 한글 리터럴: ${bad.message}`);
+
+  const desc = run.params?.path?.description ?? "";
+  assert.ok(desc.length > 0, "run.params.path.description 누락");
+  assert.ok(!HANGUL.test(desc), `run.params.path.description(LLM 표면) 에 한글 리터럴: ${desc}`);
 });
