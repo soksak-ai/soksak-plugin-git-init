@@ -1,11 +1,11 @@
 // 커맨드 표면 conformance — C2 투명성 3종의 command 축 검사.
-// 이 플러그인은 뷰 없는 정책 플러그인이다: project.created 를 관찰해 git.init 에 위임한다.
+// 이 플러그인은 뷰 없는 정책 플러그인이다: project.created 를 관찰해 git 라이브러리 플러그인 init 에 위임한다.
 // 기능(이벤트 구독·위임)이 실존하므로 커맨드 표면 0 은 C2 위반 — 정책의 관찰면(status)과
 // 수동 실행(run)을 헤드리스 커맨드로 노출해야 한다.
 // 검사 축: ① 매니페스트 선언(기능>0 → commands>0, "commands" 권한)
 //          ② 선언 ≡ 등록 양방향(plugin.json contributes.commands ↔ activate 실등록)
 //          ③ 스펙 의무 필드(description·ko triggers·examples·message — T-법 T1)
-//          ④ 핸들러 동작(정책 장부 반영·git.init 위임 관통, 실패는 {ok:false,code,message})
+//          ④ 핸들러 동작(정책 장부 반영·git-core init 위임 관통, 실패는 {ok:false,code,message})
 // 실행: node --test (앱 불요 — 호스트 API 는 mock).
 
 import test from "node:test";
@@ -120,7 +120,7 @@ test("status: 초기 상태 — 정책 활성·관찰 이벤트·위임 명령·
   const out = await registered.get("status").handler({});
   assert.equal(out.active, true);
   assert.equal(out.event, "project.created");
-  assert.equal(out.delegate, "git.init");
+  assert.equal(out.delegate, "plugin.soksak-plugin-git-core.init");
   assert.equal(out.autoRuns, 0);
   assert.equal(out.manualRuns, 0);
   assert.equal(out.last, null);
@@ -130,7 +130,7 @@ test("이벤트 발화 → 위임 실행 + status 장부 반영 (source=auto)", 
   const { registered, events, executed } = activateWithMock();
   events.get("project.created")({ root: "/tmp/proj" });
   await flush();
-  assert.deepEqual(executed[0], ["git.init", { path: "/tmp/proj" }]);
+  assert.deepEqual(executed[0], ["plugin.soksak-plugin-git-core.init", { path: "/tmp/proj" }]);
   const out = await registered.get("status").handler({});
   assert.equal(out.autoRuns, 1);
   assert.equal(out.manualRuns, 0);
@@ -159,7 +159,7 @@ test("run: path 누락 → {ok:false, code:INVALID_PARAMS} 봉투·위임 0회",
   assert.equal(executed.length, 0, "검증 실패 시 위임 호출 금지");
 });
 
-test("run: git.init 위임 관통(inv.execute 우선) — {initialized,path} 반환 + 장부(source=manual)", async () => {
+test("run: git-core init 위임 관통(inv.execute 우선) — {initialized,path} 반환 + 장부(source=manual)", async () => {
   const { registered } = activateWithMock();
   const nested = [];
   const inv = {
@@ -174,7 +174,7 @@ test("run: git.init 위임 관통(inv.execute 우선) — {initialized,path} 반
     },
   };
   const out = await registered.get("run").handler({ path: "/tmp/x" }, inv);
-  assert.deepEqual(nested[0], ["git.init", { path: "/tmp/x" }]);
+  assert.deepEqual(nested[0], ["plugin.soksak-plugin-git-core.init", { path: "/tmp/x" }]);
   assert.equal(out.initialized, true);
   assert.equal(out.path, "/tmp/x");
   const st = await registered.get("status").handler({});

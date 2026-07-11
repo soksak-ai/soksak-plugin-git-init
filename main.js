@@ -1,12 +1,12 @@
-// git 자동 초기화 — 새 프로젝트(project.created)의 루트에 .git 이 없으면
-// git.init 명령을 실행한다(있으면 명령이 no-op, 멱등). 기존 명령+이벤트만
-// 조합 — 자체 백엔드 0줄.
+// git 자동 초기화 — 새 프로젝트(project.created)의 루트에 .git 이 없으면 git 라이브러리 플러그인의
+// init 명령을 실행한다(있으면 명령이 no-op, 멱등). 기존 명령+이벤트만 조합 — 자체 백엔드 0줄.
+// git 실행은 코어에서 방출됐다(W8) — soksak-plugin-git-core 를 dependencies 로 선언한다.
 // C2 투명성(command 축): 뷰 없는 정책 플러그인도 커맨드 표면을 노출한다 —
 // status(정책 관찰면: 무엇을 보고 어디에 위임하며 몇 번 실행했는가)와
-// run(같은 위임 경로의 수동 실행, git.init 멱등이라 안전).
+// run(같은 위임 경로의 수동 실행, init 멱등이라 안전).
 
 const EVENT = "project.created";
-const DELEGATE = "git.init";
+const DELEGATE = "plugin.soksak-plugin-git-core.init";
 
 export default {
   activate(ctx) {
