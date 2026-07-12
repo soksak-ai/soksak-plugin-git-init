@@ -16,11 +16,9 @@ implementer the policy keeps observing and refuses loudly (`NO_GIT_PROVIDER`) in
 skipping — `status` then reports `provider: null`, which is the difference between "nothing to do"
 and "nothing able to do it".
 
-The manifest still declares `dependencies: { "soksak-plugin-git-core": "^0.1.0" }`. That is **not**
-this plugin's choice: the core's cross-plugin gate currently admits a call only when the target's
-plugin id appears in `dependencies`, so a contract-pinned consumer cannot reach its provider without
-it. **Remove that line when the core accepts a contract-pin declaration on the consumer side** — the
-code needs no change, because the code already names no implementer.
+The manifest declares `consumes: ["soksak-git-spec@1"]` — the consumer side of the contract pin.
+The host's call gate reads that declaration, so **no implementer's plugin id appears anywhere in
+this plugin**: not in its code, not in its manifest.
 
 ## Commands
 
