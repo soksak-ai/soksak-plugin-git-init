@@ -19,11 +19,37 @@ const plugin = (await import("./main.js")).default;
 
 const MIN_SURFACE = ["status", "run"]; // 위생 최소 표면 — 정책 상태 조회 + 수동 실행
 
+// 이 플러그인은 git 제공자를 **계약으로** 찾는다(soksak-git-spec@1) — 이름으로 찾지 않는다.
+// 그래서 시험이 제공자의 id 를 정하고, 그 id 는 일부러 git-core 가 아니다: 코드에 구현체 이름이
+// 박혀 있으면 아래 시험은 통과할 수 없다.
+const CONTRACT = "soksak-git-spec@1";
+const PROVIDER = "soksak-plugin-any-git";
+const INIT = `plugin.${PROVIDER}.init`;
+const ENABLED = [{ id: PROVIDER, version: "1.0.0", status: "enabled" }];
+
 // activate 를 mock 호스트로 구동 — 등록 커맨드 스펙·이벤트 구독·위임 호출을 수확한다.
+// executed 에는 제공자 명령만 남는다(발견 호출은 discovery 축에).
 function activateWithMock(opts = {}) {
   const registered = new Map();
   const events = new Map();
   const executed = [];
+  const discovery = [];
+  const implementers = opts.implementers ?? ENABLED;
+  const exec = async (name, params) => {
+    if (name === "plugin.implementers") {
+      discovery.push(params);
+      return { ok: true, code: "OK", message: "", data: { contract: params?.contract, implementers } };
+    }
+    executed.push([name, params]);
+    return opts.execute
+      ? opts.execute(name, params)
+      : {
+          ok: true,
+          code: "OK",
+          message: "",
+          data: { initialized: true, path: params?.path },
+        };
+  };
   const app = {
     locale: () => opts.locale ?? "en",
     commands: {
@@ -31,17 +57,7 @@ function activateWithMock(opts = {}) {
         registered.set(name, spec);
         return { dispose() {} };
       },
-      execute: async (name, params) => {
-        executed.push([name, params]);
-        return opts.execute
-          ? opts.execute(name, params)
-          : {
-              ok: true,
-              code: "OK",
-              message: "",
-              data: { initialized: true, path: params?.path },
-            };
-      },
+      execute: exec,
     },
     events: {
       on: (name, cb) => {
@@ -51,7 +67,7 @@ function activateWithMock(opts = {}) {
     },
   };
   plugin.activate({ app, subscriptions: [] });
-  return { registered, events, executed };
+  return { registered, events, executed, discovery };
 }
 
 // 이벤트 핸들러의 위임 체인(execute().then(기록))이 microtask 로 끝난다 — 한 틱 흘려보낸다.
@@ -115,22 +131,44 @@ test("스펙 의무 필드 — description·ko triggers·examples·message·hand
   }
 });
 
-test("status: 초기 상태 — 정책 활성·관찰 이벤트·위임 명령·실행 0회", async () => {
-  const { registered } = activateWithMock();
+test("status: 초기 상태 — 정책 활성·관찰 이벤트·계약과 해소된 제공자·실행 0회", async () => {
+  const { registered, discovery } = activateWithMock();
   const out = await registered.get("status").handler({});
   assert.equal(out.active, true);
   assert.equal(out.event, "project.created");
-  assert.equal(out.delegate, "plugin.soksak-plugin-git-core.init");
+  // 관찰면은 무엇에 위임하는지 말한다 — 계약(고정)과 지금 그 계약을 이행 중인 제공자(가변).
+  assert.equal(out.contract, CONTRACT);
+  assert.equal(out.provider, PROVIDER);
+  assert.equal(out.delegate, INIT);
+  assert.deepEqual(discovery, [{ contract: CONTRACT }]);
   assert.equal(out.autoRuns, 0);
   assert.equal(out.manualRuns, 0);
   assert.equal(out.last, null);
+});
+
+test("status: 구현체 0 → provider·delegate 는 null, 정책은 여전히 관찰 중", async () => {
+  const { registered } = activateWithMock({ implementers: [] });
+  const out = await registered.get("status").handler({});
+  assert.equal(out.active, true);
+  assert.equal(out.contract, CONTRACT);
+  assert.equal(out.provider, null);
+  assert.equal(out.delegate, null);
+});
+
+test("run: 구현체 0 → loud 거부(NO_GIT_PROVIDER)·위임 0회", async () => {
+  const { registered, executed } = activateWithMock({ implementers: [] });
+  const out = await registered.get("run").handler({ path: "/tmp/x" });
+  assert.equal(out.ok, false);
+  assert.equal(out.code, "NO_GIT_PROVIDER");
+  assert.ok(out.message.includes(CONTRACT));
+  assert.equal(executed.length, 0, "제공자 없이 위임 호출 금지");
 });
 
 test("이벤트 발화 → 위임 실행 + status 장부 반영 (source=auto)", async () => {
   const { registered, events, executed } = activateWithMock();
   events.get("project.created")({ root: "/tmp/proj" });
   await flush();
-  assert.deepEqual(executed[0], ["plugin.soksak-plugin-git-core.init", { path: "/tmp/proj" }]);
+  assert.deepEqual(executed[0], [INIT, { path: "/tmp/proj" }]);
   const out = await registered.get("status").handler({});
   assert.equal(out.autoRuns, 1);
   assert.equal(out.manualRuns, 0);
@@ -159,11 +197,14 @@ test("run: path 누락 → {ok:false, code:INVALID_PARAMS} 봉투·위임 0회",
   assert.equal(executed.length, 0, "검증 실패 시 위임 호출 금지");
 });
 
-test("run: git-core init 위임 관통(inv.execute 우선) — {initialized,path} 반환 + 장부(source=manual)", async () => {
+test("run: 제공자 init 위임 관통(inv.execute 우선) — {initialized,path} 반환 + 장부(source=manual)", async () => {
   const { registered } = activateWithMock();
   const nested = [];
   const inv = {
     execute: async (name, params) => {
+      if (name === "plugin.implementers") {
+        return { ok: true, code: "OK", message: "", data: { implementers: ENABLED } };
+      }
       nested.push([name, params]);
       return {
         ok: true,
@@ -174,7 +215,7 @@ test("run: git-core init 위임 관통(inv.execute 우선) — {initialized,path
     },
   };
   const out = await registered.get("run").handler({ path: "/tmp/x" }, inv);
-  assert.deepEqual(nested[0], ["plugin.soksak-plugin-git-core.init", { path: "/tmp/x" }]);
+  assert.deepEqual(nested[0], [INIT, { path: "/tmp/x" }]);
   assert.equal(out.initialized, true);
   assert.equal(out.path, "/tmp/x");
   const st = await registered.get("status").handler({});
