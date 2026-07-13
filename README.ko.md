@@ -6,7 +6,7 @@
 
 ## 동작
 
-프로젝트가 생성되면(`project.created`) 루트를 **`soksak-git-spec@1`** 구현체의 `init` 명령에
+프로젝트가 생성되면(`project.created`) 루트를 **`soksak-spec-plugin-git`** 구현체의 `init` 명령에
 넘긴다. `.git` 이 이미 있으면 no-op(멱등).
 
 ## 커맨드
@@ -29,7 +29,7 @@ git 제공자는 **계약으로 찾는다 — 이름으로 찾지 않는다**(`p
 거부한다(`NO_GIT_PROVIDER`) — 무음 스킵이 아니다. 그때 `status` 는 `provider: null` 을 보고한다
 ("할 일이 없다"와 "할 사람이 없다"의 차이).
 
-매니페스트는 `consumes: ["soksak-git-spec@1"]` 를 선언한다 — 계약-핀의 소비자 축이다. 호스트의 호출
+매니페스트는 `consumes: ["soksak-spec-plugin-git"]` 를 선언한다 — 계약-핀의 소비자 축이다. 호스트의 호출
 게이트가 그 선언을 읽으므로 **이 플러그인 어디에도 구현체의 플러그인 id 가 없다**: 코드에도, 매니페스트에도.
 
 ## 테스트

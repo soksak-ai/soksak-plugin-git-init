@@ -19,10 +19,10 @@ const plugin = (await import("./main.js")).default;
 
 const MIN_SURFACE = ["status", "run"]; // 위생 최소 표면 — 정책 상태 조회 + 수동 실행
 
-// 이 플러그인은 git 제공자를 **계약으로** 찾는다(soksak-git-spec@1) — 이름으로 찾지 않는다.
+// 이 플러그인은 git 제공자를 **계약으로** 찾는다(soksak-spec-plugin-git) — 이름으로 찾지 않는다.
 // 그래서 시험이 제공자의 id 를 정하고, 그 id 는 일부러 git-core 가 아니다: 코드에 구현체 이름이
 // 박혀 있으면 아래 시험은 통과할 수 없다.
-const CONTRACT = "soksak-git-spec@1";
+const CONTRACT = "soksak-spec-plugin-git";
 const PROVIDER = "soksak-plugin-any-git";
 const INIT = `plugin.${PROVIDER}.init`;
 const ENABLED = [{ id: PROVIDER, version: "1.0.0", status: "enabled" }];

@@ -7,7 +7,7 @@ existing command — zero lines of its own backend, and zero git of its own.
 ## Behavior
 
 When a project is created (`project.created`), the root path is passed to the `init` command of
-the plugin implementing **`soksak-git-spec@1`**. If `.git` already exists, the call is a no-op
+the plugin implementing **`soksak-spec-plugin-git`**. If `.git` already exists, the call is a no-op
 (idempotent).
 
 The provider is found **by contract, never by name** (`plugin.implementers` → the enabled
@@ -16,7 +16,7 @@ implementer the policy keeps observing and refuses loudly (`NO_GIT_PROVIDER`) in
 skipping — `status` then reports `provider: null`, which is the difference between "nothing to do"
 and "nothing able to do it".
 
-The manifest declares `consumes: ["soksak-git-spec@1"]` — the consumer side of the contract pin.
+The manifest declares `consumes: ["soksak-spec-plugin-git"]` — the consumer side of the contract pin.
 The host's call gate reads that declaration, so **no implementer's plugin id appears anywhere in
 this plugin**: not in its code, not in its manifest.
 

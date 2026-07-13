@@ -4,11 +4,11 @@
 // status(정책 관찰면: 무엇을 보고 어디에 위임하며 몇 번 실행했는가)와
 // run(같은 위임 경로의 수동 실행, init 멱등이라 안전).
 //
-// git 은 직접 실행하지 않는다. soksak-git-spec@1 을 구현한 플러그인에게 위임하고, 그 플러그인은
+// git 은 직접 실행하지 않는다. soksak-spec-plugin-git 을 구현한 플러그인에게 위임하고, 그 플러그인은
 // **계약으로 찾는다 — 이름으로 찾지 않는다**(C3 L2 계약-핀). 그래서 관찰면(status)이 보고하는
 // 위임 대상은 두 층이다: 고정된 계약(contract)과, 지금 그 계약을 이행 중인 제공자(provider).
 const EVENT = "project.created";
-const GIT_CONTRACT = "soksak-git-spec@1";
+const GIT_CONTRACT = "soksak-spec-plugin-git";
 
 export default {
   activate(ctx) {
