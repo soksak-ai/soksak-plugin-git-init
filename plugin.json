@@ -2,13 +2,12 @@
   "spec": "soksak-spec-plugin@0.0.1",
   "id": "soksak-plugin-git-init",
   "name": {
-    "ko": "git 자동 초기화",
+    "ko": "git \uc790\ub3d9 \ucd08\uae30\ud654",
     "en": "Auto git init"
   },
   "version": "0.0.1",
-  "repo": "https://github.com/soksak-ai/soksak-plugin-git-init.git",
   "description": {
-    "ko": "새 프로젝트의 루트에 .git 이 없으면 자동으로 git init. 정책 상태 조회·수동 실행 커맨드 제공.",
+    "ko": "\uc0c8 \ud504\ub85c\uc81d\ud2b8\uc758 \ub8e8\ud2b8\uc5d0 .git \uc774 \uc5c6\uc73c\uba74 \uc790\ub3d9\uc73c\ub85c git init. \uc815\ucc45 \uc0c1\ud0dc \uc870\ud68c\u00b7\uc218\ub3d9 \uc2e4\ud589 \ucee4\ub9e8\ub4dc \uc81c\uacf5.",
     "en": "Runs git init automatically when a new project root has no .git. Provides commands to query the policy state and run it manually."
   },
   "entry": "main.js",
@@ -20,14 +19,14 @@
       {
         "name": "status",
         "title": {
-          "ko": "정책 상태",
+          "ko": "\uc815\ucc45 \uc0c1\ud0dc",
           "en": "Policy status"
         }
       },
       {
         "name": "run",
         "title": {
-          "ko": "지금 초기화 실행",
+          "ko": "\uc9c0\uae08 \ucd08\uae30\ud654 \uc2e4\ud589",
           "en": "Run init now"
         }
       }

@@ -4,5 +4,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test"
+  },
+  "version": "0.0.1",
+  "soksakRelease": {
+    "kind": "plugin",
+    "id": "soksak-plugin-git-init",
+    "repository": "https://github.com/soksak-ai/soksak-plugin-git-init",
+    "manifest": "release.json"
   }
 }
