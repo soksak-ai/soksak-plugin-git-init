@@ -10,8 +10,9 @@ When a project is created (`project.created`), the root path is passed to the `i
 the plugin implementing **`soksak-spec-plugin-git`**. If `.git` already exists, the call is a no-op
 (idempotent).
 
-The provider is found **by contract, never by name** (`plugin.implementers` → the enabled
-implementer), so a different implementer takes over without an edit here. With no enabled
+The provider is found **by contract, never by name** — discovery calls
+`plugin.implementers { id: "soksak-spec-plugin-git" }` (the contract's identity, version-free) and
+takes the enabled implementer. A different implementer takes over without an edit here. With no enabled
 implementer the policy keeps observing and refuses loudly (`NO_GIT_PROVIDER`) instead of silently
 skipping — `status` then reports `provider: null`, which is the difference between "nothing to do"
 and "nothing able to do it".

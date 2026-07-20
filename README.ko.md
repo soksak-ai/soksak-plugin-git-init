@@ -24,7 +24,8 @@ sok plugin.soksak-plugin-git-init.run '{"path":"/Users/me/work"}'   # 지금 이
 - `run` 은 `path` 필수, 제공자의 `init` 에 위임한다(`.git` 없을 때만 초기화). 실행은 정책
   상태에 기록된다.
 
-git 제공자는 **계약으로 찾는다 — 이름으로 찾지 않는다**(`plugin.implementers` → 활성 구현체).
+git 제공자는 **계약으로 찾는다 — 이름으로 찾지 않는다** — 발견은
+`plugin.implementers { id: "soksak-spec-plugin-git" }`(계약 identity, 버전-free)로 부르고 활성 구현체를 취한다.
 구현체가 바뀌어도 이 플러그인은 그대로다. 활성 구현체가 없으면 정책은 계속 관찰하되 loud 하게
 거부한다(`NO_GIT_PROVIDER`) — 무음 스킵이 아니다. 그때 `status` 는 `provider: null` 을 보고한다
 ("할 일이 없다"와 "할 사람이 없다"의 차이).
