@@ -22,7 +22,7 @@ export default {
     // 계약 구현체 해소 — 매번 다시 묻는다(구현체는 런타임에 켜지고 꺼진다).
     // exec 를 받는 이유: 중첩 실행(inv.execute)은 유래·상관을 계승한다 — 발견도 같은 경로로 나간다.
     const providerOf = async (exec) => {
-      const out = await exec("plugin.implementers", { contract: GIT_CONTRACT });
+      const out = await exec("plugin.implementers", { id: GIT_CONTRACT });
       if (!out?.ok) return null;
       const found = (out.data?.implementers ?? []).find((i) => i.status === "enabled");
       return found?.id ?? null;

@@ -38,7 +38,7 @@ function activateWithMock(opts = {}) {
   const exec = async (name, params) => {
     if (name === "plugin.implementers") {
       discovery.push(params);
-      return { ok: true, code: "OK", message: "", data: { contract: params?.contract, implementers } };
+      return { ok: true, code: "OK", message: "", data: { contract: params?.id, implementers } };
     }
     executed.push([name, params]);
     return opts.execute
@@ -140,7 +140,7 @@ test("status: 초기 상태 — 정책 활성·관찰 이벤트·계약과 해�
   assert.equal(out.contract, CONTRACT);
   assert.equal(out.provider, PROVIDER);
   assert.equal(out.delegate, INIT);
-  assert.deepEqual(discovery, [{ contract: CONTRACT }]);
+  assert.deepEqual(discovery, [{ id: CONTRACT }]);
   assert.equal(out.autoRuns, 0);
   assert.equal(out.manualRuns, 0);
   assert.equal(out.last, null);
